@@ -1,27 +1,62 @@
 // @ts-nocheck
-import React, { useState } from 'react';
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Environment } from '@react-three/drei'
-import { Model } from './CrawlerCrane'
-import { Box, Maximize2, RotateCw, Activity } from 'lucide-react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Environment, useGLTF } from '@react-three/drei';
+import { Model as CraneModel } from './CrawlerCrane'; // Model Crane/Excavator kamu
+import { Box, Maximize2, Minimize2, RotateCw, Activity } from 'lucide-react';
 
-export default function DigitalTwin3D() {
+// Sub-komponen khusus pemanggil 3D Bulldozer dari folder public
+function BulldozerModel() {
+  const { scene } = useGLTF('/models/bulldozer/scene.gltf');
+  return <primitive object={scene} scale={0.01} position={[0, -0.5, 0]} />;
+}
+
+interface DigitalTwinProps {
+  selectedFleetType?: string;
+}
+
+export default function DigitalTwin3D({ selectedFleetType = 'Excavator' }: DigitalTwinProps) {
   const [selectedSubsystem] = useState<string>('HYDRAULIC_PUMP');
   const [isRotating, setIsRotating] = useState<boolean>(true);
+  
+  // 1. State untuk status Layar Penuh / Maximize
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+  // 2. Shortcut tombol ESC untuk keluar dari mode Fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsExpanded(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
-    <div className="relative w-full h-full min-h-[300px] bg-[#090d14] rounded-lg border border-industrial-border/60 overflow-hidden flex flex-col justify-between p-3 select-none">
+    <div 
+      className={`select-none flex flex-col justify-between overflow-hidden bg-[#090d14] transition-all duration-300 ${
+        isExpanded 
+          ? 'fixed inset-0 z-50 w-screen h-screen p-6' 
+          : 'relative w-full h-full min-h-[300px] rounded-lg border border-industrial-border/60 p-3'
+      }`}
+    >
       
       {/* 3D Canvas Background */}
       <div className="absolute inset-0 w-full h-full">
         <Canvas camera={{ position: [12, 10, 12], fov: 45 }}>
-          {/* Pencahayaan seimbang agar warna tidak putih mengkilap */}
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 15, 10]} intensity={1.0} />
           <directionalLight position={[-10, -10, -10]} intensity={0.3} />
           <Environment preset="city" /> 
 
-          <Model />
+          {/* Kondisi Switch Model 3D */}
+          <Suspense fallback={null}>
+            {selectedFleetType === 'Bulldozer' ? (
+              <BulldozerModel />
+            ) : (
+              <CraneModel />
+            )}
+          </Suspense>
+
           <OrbitControls autoRotate={isRotating} autoRotateSpeed={1.5} enablePan={true} zoomSpeed={0.5} />
         </Canvas>
       </div>
@@ -39,19 +74,28 @@ export default function DigitalTwin3D() {
       <div className="relative z-10 flex justify-between items-center text-xs font-mono pointer-events-auto">
         <div className="flex items-center gap-2 bg-industrial-panel/80 backdrop-blur-md px-2 py-1 rounded border border-industrial-border/60">
           <Box size={13} className="text-industrial-yellow" />
-          <span className="text-gray-300">XCMG XE370 DIGITAL TWIN</span>
+          {/* Judul dinamis menyesuaikan model */}
+          <span className="text-gray-300 uppercase">
+            XCMG {selectedFleetType} DIGITAL TWIN
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsRotating(!isRotating)}
-            className={`p-1.5 rounded border border-industrial-border/60 transition-colors ${isRotating ? 'bg-industrial-cyan/20 text-industrial-cyan' : 'bg-industrial-panel text-gray-400'}`}
+            className={`p-1.5 rounded border border-industrial-border/60 transition-colors cursor-pointer ${isRotating ? 'bg-industrial-cyan/20 text-industrial-cyan' : 'bg-industrial-panel text-gray-400'}`}
             title="Toggle Auto Rotate"
           >
             <RotateCw size={13} className={isRotating ? 'animate-spin-slow' : ''} />
           </button>
-          <button className="p-1.5 bg-industrial-panel text-gray-400 hover:text-white rounded border border-industrial-border/60">
-            <Maximize2 size={13} />
+          
+          {/* 3. Tombol Maximize / Minimize yang fungsional */}
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-1.5 bg-industrial-panel text-gray-400 hover:text-white rounded border border-industrial-border/60 transition-colors cursor-pointer"
+            title={isExpanded ? "Minimize (Esc)" : "Maximize"}
+          >
+            {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
           </button>
         </div>
       </div>
@@ -104,3 +148,6 @@ export default function DigitalTwin3D() {
     </div>
   );
 }
+
+// Preload file 3D Bulldozer biar nggak lag pas pertama diklik
+useGLTF.preload('/models/bulldozer/scene.gltf');

@@ -1,13 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTelemetryStore } from './store/useTelemetryStore';
 import TelemetryChart from './components/TelemetryChart';
 import MaintenanceFeed from './components/center/MaintenanceFeed';
 import FleetMap from './components/left/FleetMap';
-import DigitalTwinCanvas from './components/center/DigitalTwinCanvas';
+import DigitalTwinCanvas from './components/center/DigitalTwinCanvas'; // Atau DigitalTwin3D jika pakai itu
 import { Activity, AlertTriangle, ShieldCheck, Cpu, Gauge, Thermometer, MapPin, Box } from 'lucide-react';
 
 export default function App() {
   const { data, isConnected, connect } = useTelemetryStore();
+  
+  // State untuk menyimpan tipe armada yang sedang dipilih (Default: Excavator)
+  const [selectedFleetType, setSelectedFleetType] = useState<string>('Excavator');
 
   useEffect(() => {
     connect();
@@ -48,7 +51,8 @@ export default function App() {
             <span>Fleet GIS Map</span>
           </div>
           <div className="flex-1">
-            <FleetMap />
+            {/* Menangkap event klik titik armada di Map */}
+            <FleetMap onSelectFleet={(type: string) => setSelectedFleetType(type)} />
           </div>
         </div>
 
@@ -59,10 +63,11 @@ export default function App() {
               <Box size={16} className="text-industrial-yellow" />
               <span>3D Component-Level Digital Twin</span>
             </div>
-            <span className="text-[10px] font-mono text-gray-500">Powered by Babylon.js</span>
+            <span className="text-[10px] font-mono text-gray-500">React Three Fiber</span>
           </div>
           <div className="flex-1">
-            <DigitalTwinCanvas />
+            {/* Mengirimkan tipe armada yang terpilih ke 3D Viewer */}
+            <DigitalTwinCanvas selectedFleetType={selectedFleetType} />
           </div>
         </div>
 

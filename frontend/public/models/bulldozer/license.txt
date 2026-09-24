@@ -1,0 +1,11 @@
+Model Information:
+* title:	Bulldozer
+* source:	https://sketchfab.com/3d-models/bulldozer-2137d93b5a804161bc65b44d583aa68e
+* author:	RobbyHollister (https://sketchfab.com/RobbyHollister)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Bulldozer" (https://sketchfab.com/3d-models/bulldozer-2137d93b5a804161bc65b44d583aa68e) by RobbyHollister (https://sketchfab.com/RobbyHollister) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
